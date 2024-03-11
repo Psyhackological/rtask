@@ -1,2 +1,41 @@
-# rust-task
-📝 Manage your tasks effortlessly with this Rust &amp; SQLx-based to-do app, enabling you to add, complete, and list tasks with simple commands!
+# TODOs Example
+
+## Setup
+
+1. Declare the database URL
+
+    ```
+    export DATABASE_URL="sqlite:todos.db"
+    ```
+
+2. Create the database.
+
+    ```
+    $ sqlx db create
+    ```
+
+3. Run sql migrations
+
+    ```
+    $ sqlx migrate run
+    ```
+
+## Usage
+
+Add a todo 
+
+```
+cargo run -- add "todo description"
+```
+
+Complete a todo.
+
+```
+cargo run -- done <todo id>
+```
+
+List all todos
+
+```
+cargo run
+```
