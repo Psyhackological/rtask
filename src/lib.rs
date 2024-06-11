@@ -1,4 +1,6 @@
 use sqlx::sqlite::SqlitePool;
+use sqlx::FromRow;
+use std::fmt;
 use structopt::StructOpt;
 
 #[derive(StructOpt)]
@@ -14,6 +16,25 @@ pub enum Command {
     DeleteDone,
 }
 
+#[derive(FromRow, Debug)]
+pub struct Todo {
+    pub id: i64,
+    pub description: String,
+    pub done: bool,
+}
+
+impl fmt::Display for Todo {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "- [{}] {}: {}",
+            if self.done { "x" } else { " " },
+            self.id,
+            self.description
+        )
+    }
+}
+
 /// ## Create
 ///
 /// Creates a new "todo" entry in the database.
@@ -22,7 +43,7 @@ pub enum Command {
 /// INSERT INTO todos ( description )
 /// VALUES ( ?1 )
 /// ```
-pub async fn add_todo(pool: &SqlitePool, description: String) -> anyhow::Result<i64> {
+pub async fn add_todo(pool: &SqlitePool, description: String) -> anyhow::Result<Todo> {
     let mut conn = pool.acquire().await?;
 
     // Insert the task, then obtain the ID of this row
@@ -37,7 +58,13 @@ VALUES ( ?1 )
     .await?
     .last_insert_rowid();
 
-    Ok(id)
+    let todo = Todo {
+        id,
+        description,
+        done: false,
+    };
+
+    Ok(todo)
 }
 
 /// ## Update
@@ -49,7 +76,7 @@ VALUES ( ?1 )
 /// SET done = TRUE
 /// WHERE id = ?1
 /// ```
-pub async fn complete_todo(pool: &SqlitePool, id: i64) -> anyhow::Result<bool> {
+pub async fn complete_todo(pool: &SqlitePool, id: i64) -> anyhow::Result<Option<Todo>> {
     let rows_affected = sqlx::query!(
         r#"
 UPDATE todos
@@ -62,7 +89,23 @@ WHERE id = ?1
     .await?
     .rows_affected();
 
-    Ok(rows_affected > 0)
+    if rows_affected > 0 {
+        let todo = sqlx::query_as!(
+            Todo,
+            r#"
+SELECT id, description, done
+FROM todos
+WHERE id = ?1
+            "#,
+            id
+        )
+        .fetch_one(pool)
+        .await?;
+
+        Ok(Some(todo))
+    } else {
+        Ok(None)
+    }
 }
 
 /// ## Read
@@ -74,8 +117,9 @@ WHERE id = ?1
 /// FROM todos
 /// ORDER BY id
 /// ```
-pub async fn list_todos(pool: &SqlitePool) -> anyhow::Result<()> {
-    let recs = sqlx::query!(
+pub async fn list_todos(pool: &SqlitePool) -> anyhow::Result<Vec<Todo>> {
+    let recs = sqlx::query_as!(
+        Todo,
         r#"
 SELECT id, description, done
 FROM todos
@@ -85,16 +129,11 @@ ORDER BY id
     .fetch_all(pool)
     .await?;
 
-    for rec in recs {
-        println!(
-            "- [{}] {}: {}",
-            if rec.done { "x" } else { " " },
-            rec.id,
-            &rec.description,
-        );
+    for todo in &recs {
+        println!("{}", todo);
     }
 
-    Ok(())
+    Ok(recs)
 }
 
 /// ## Delete

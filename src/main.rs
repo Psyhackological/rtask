@@ -17,10 +17,9 @@ async fn main() -> anyhow::Result<()> {
         }
         Some(Command::Done { id }) => {
             println!("Marking todo {id} as done");
-            if complete_todo(&pool, id).await? {
-                println!("Todo {id} is marked as done");
-            } else {
-                println!("Invalid id {id}");
+            match complete_todo(&pool, id).await? {
+                Some(todo) => println!("Todo marked as done: {}", todo),
+                None => println!("Invalid id {id}"),
             }
         }
         Some(Command::DeleteDone) => {
