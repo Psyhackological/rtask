@@ -1,7 +1,8 @@
-alias i := db_init
+alias i := init
 alias ls := list
 alias a := add
-alias d := delete-done
+alias d := done
+alias dd := delete-done
 
 alias c := clippy
 alias f := fmt

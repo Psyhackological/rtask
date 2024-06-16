@@ -4,38 +4,111 @@
 
 1. Declare the database URL
 
-    ```
-    export DATABASE_URL="sqlite:todos.db"
-    ```
+  ```sh
+  export DATABASE_URL="sqlite:todos.db"
+  ```
 
 2. Create the database.
 
-    ```
-    $ sqlx db create
-    ```
+  ```sh
+  $ sqlx db create
+  ```
 
-3. Run sql migrations
+3. Run SQL migrations
 
-    ```
-    $ sqlx migrate run
-    ```
+  ```sh
+  $ sqlx migrate run
+  ```
 
 ## Usage
 
-Add a todo 
+### Using Cargo Commands
 
-```
+Add a todo:
+
+```sh
 cargo run -- add "todo description"
 ```
 
-Complete a todo.
+Add a todo with a category:
 
-```
-cargo run -- done <todo id>
+```sh
+cargo run -- add "todo description" "category name"
 ```
 
-List all todos
+Complete a todo:
 
+```sh
+cargo run -- done <todo_id>
 ```
+
+List all todos:
+
+```sh
 cargo run
 ```
+
+Delete all completed todos:
+
+```sh
+cargo run -- delete-done
+```
+
+### Using Justfile Aliases
+
+Initialize the database and run migrations:
+
+```sh
+just init
+just i
+```
+
+Add a todo:
+
+```sh
+just add "todo description"
+just a "todo description"
+```
+
+Add a todo with a category:
+
+```sh
+just add "todo description" "category name"
+just a "todo description" "category name"
+```
+
+Complete a todo:
+
+```sh
+just done <todo_id>
+just d <todo_id>
+```
+
+List all todos:
+
+```sh
+just list
+just ls
+```
+
+Delete all completed todos:
+
+```sh
+just delete-done
+just dd
+```
+
+Run Clippy to check for common mistakes:
+
+```sh
+just clippy
+just c
+```
+
+Format the code using Rustfmt:
+
+```sh
+just format
+just f
+```
+
