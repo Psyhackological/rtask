@@ -1,5 +1,5 @@
-use rust_task::{add_todo, complete_todo, delete_done_todos, list_todos};
-use rust_task::{Args, Command};
+use rtask::{add_todo, complete_todo, delete_done_todos, list_todos};
+use rtask::{Args, Command};
 use sqlx::sqlite::SqlitePool;
 use std::env;
 use structopt::StructOpt;
@@ -14,7 +14,7 @@ async fn main() -> anyhow::Result<()> {
             description,
             category,
         }) => {
-            println!("Adding new todo with description '{}'", description);
+            println!("Adding new todo with description '{description}'");
             let todo = add_todo(
                 &pool,
                 description,
@@ -25,23 +25,35 @@ async fn main() -> anyhow::Result<()> {
                 },
             )
             .await?;
-            println!("Added new todo: {}", todo);
+            println!("Added new todo: {todo}");
         }
         Some(Command::Done { id }) => {
-            println!("Marking todo {} as done", id);
+            println!("Marking todo {id} as done");
             match complete_todo(&pool, id).await? {
-                Some(todo) => println!("Todo marked as done: {}", todo),
-                None => println!("Invalid id {}", id),
+                Some(todo) => println!("Todo marked as done: {todo}"),
+                None => println!("Invalid id {id}"),
             }
         }
         Some(Command::DeleteDone) => {
             println!("Deleting all done todos");
             let deleted_count = delete_done_todos(&pool).await?;
-            println!("Deleted {} todos that were marked as done", deleted_count);
+            println!("Deleted {deleted_count} todos that were marked as done");
+        }
+        Some(Command::List { category }) => {
+            println!("Printing list of all todos in category '{category}'");
+            list_todos(
+                &pool,
+                if category.is_empty() {
+                    None
+                } else {
+                    Some(category)
+                },
+            )
+            .await?;
         }
         None => {
             println!("Printing list of all todos");
-            list_todos(&pool).await?;
+            list_todos(&pool, None).await?;
         }
     }
 

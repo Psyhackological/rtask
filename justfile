@@ -9,12 +9,16 @@ alias f := fmt
 
 export DATABASE_URL := "sqlite:todos.db"
 
-db_init:
+init:
   sqlx db create
   sqlx migrate run
 
-list:
-  cargo run
+list category="":
+  if [ "{{category}}" = "" ]; then \
+    cargo run -- list ""; \
+  else \
+    cargo run -- list "{{category}}"; \
+  fi
 
 add task category="":
   if [ "{{category}}" = "" ]; then \

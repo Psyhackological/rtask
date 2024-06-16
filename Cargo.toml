@@ -1,6 +1,6 @@
 [package]
-name = "rust-task"
-version = "0.4.0"
+name = "rtask"
+version = "0.4.1"
 edition = "2021"
 
 [dependencies]

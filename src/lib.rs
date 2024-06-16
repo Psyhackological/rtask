@@ -20,6 +20,10 @@ pub enum Command {
         id: i64,
     },
     DeleteDone,
+    List {
+        #[structopt(default_value = "")]
+        category: String,
+    },
 }
 
 #[derive(FromRow, Debug)]
@@ -45,7 +49,7 @@ impl fmt::Display for Todo {
             self.id,
             self.description,
             if let Some(category_name) = &self.category_name {
-                format!(" (category: {})", category_name)
+                format!(" (category: {category_name})")
             } else {
                 String::new()
             }
@@ -197,29 +201,46 @@ WHERE todos.id = ?1
 
 /// ## Read Todos
 ///
-/// Prints the list of all "todo" tasks.
+/// Prints the list of all "todo" tasks, optionally filtered by category.
 ///
 /// ```sql
 /// SELECT todos.id, todos.description, todos.done, categories.name AS category_name
 /// FROM todos
 /// LEFT JOIN categories ON todos.category_id = categories.id
+/// WHERE categories.name = ?1 OR ?1 = ''
 /// ORDER BY todos.id
 /// ```
-pub async fn list_todos(pool: &SqlitePool) -> anyhow::Result<Vec<Todo>> {
-    let recs = sqlx::query_as!(
-        Todo,
-        r#"
+pub async fn list_todos(pool: &SqlitePool, category: Option<String>) -> anyhow::Result<Vec<Todo>> {
+    let recs = if let Some(cat) = category {
+        sqlx::query_as!(
+            Todo,
+            r#"
+SELECT todos.id, todos.description, todos.done, categories.name AS category_name
+FROM todos
+LEFT JOIN categories ON todos.category_id = categories.id
+WHERE categories.name = ?1
+ORDER BY todos.id
+            "#,
+            cat
+        )
+        .fetch_all(pool)
+        .await?
+    } else {
+        sqlx::query_as!(
+            Todo,
+            r#"
 SELECT todos.id, todos.description, todos.done, categories.name AS category_name
 FROM todos
 LEFT JOIN categories ON todos.category_id = categories.id
 ORDER BY todos.id
-        "#
-    )
-    .fetch_all(pool)
-    .await?;
+            "#
+        )
+        .fetch_all(pool)
+        .await?
+    };
 
     for todo in &recs {
-        println!("{}", todo);
+        println!("{todo}");
     }
 
     Ok(recs)
