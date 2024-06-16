@@ -4,21 +4,34 @@
 
 1. Declare the database URL
 
-  ```sh
-  export DATABASE_URL="sqlite:todos.db"
-  ```
+- GNU/Linux /w Bash
 
+```bash
+export DATABASE_URL="sqlite:todos.db"
+```
+
+- For Command Prompt (`cmd.exe`)
+
+ ```cmd
+ set DATABASE_URL=sqlite:todos.db
+ ```
+
+- PowerShell
+
+ ```powershell
+ $env:DATABASE_URL="sqlite:todos.db"
+ ```
 2. Create the database.
 
-  ```sh
-  $ sqlx db create
-  ```
+```sh
+sqlx db create
+```
 
 3. Run SQL migrations
 
-  ```sh
-  $ sqlx migrate run
-  ```
+```sh
+sqlx migrate run
+```
 
 ## Usage
 
