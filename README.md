@@ -91,6 +91,13 @@ just list
 just ls
 ```
 
+List all todos filtered by category:
+
+```sh
+just list "category name"
+just ls "category name"
+```
+
 Delete all completed todos:
 
 ```sh
